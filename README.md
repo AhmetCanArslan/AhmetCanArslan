@@ -1,4 +1,4 @@
-I'm a cs student who loves coding. That's it.
+I'm a cs student who loves coding and still can't choose his field. That's it.
 
 
 <p align="left"> <img src="https://komarev.com/ghpvc/?username=ahmetcanarslan&label=Profile%20views&color=0e75b6&style=flat" alt="ahmetcanarslan" /> </p>
