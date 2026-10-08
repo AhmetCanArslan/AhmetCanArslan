@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 100" width="880" height="100" shape-rendering="crispEdges">
+<style>
+@keyframes blink{0%,49%{opacity:1}50%,100%{opacity:0}}
+@keyframes twinkle{0%,100%{opacity:.15}50%{opacity:1}}
+@keyframes pop{0%{opacity:0;transform:translateY(10px)}100%{opacity:1;transform:translateY(0)}}
+@keyframes slide{0%{opacity:0;transform:translateX(-24px)}100%{opacity:1;transform:translateX(0)}}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
+@keyframes march{to{stroke-dashoffset:-32}}
+@keyframes sweep{0%{transform:translateX(-200px)}35%,100%{transform:translateX(1080px)}}
+@keyframes cell{0%{opacity:0}100%{opacity:1}}
+.blink{animation:blink 1s steps(1) infinite}
+
+</style>
+<defs><linearGradient id="shine" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".07"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+<clipPath id="clip"><rect x="4" y="4" width="872" height="88"/></clipPath></defs>
+<rect width="880" height="100" fill="#0d0b14"/>
+<g style="animation:slide .5s 0.42s both">
+<rect x="4" y="4" width="872" height="88" fill="#15121f" stroke="#2e2747" stroke-width="2"/>
+<path d="M3 3h12v2h-10v10h-2zM877 93h-12v-2h10v-10h2z" fill="#a97bff"/>
+<rect x="5" y="5" width="6" height="86" fill="#a97bff" style="animation:pulse 2.4s 1.4s infinite"/>
+<g clip-path="url(#clip)"><rect x="0" y="4" width="160" height="88" fill="url(#shine)" style="animation:sweep 7s 2.45s linear infinite"/></g>
+<path d="M33 28h15v5h-15zM28 33h5v5h-5zM48 33h5v5h-5zM28 38h5v5h-5zM43 38h10v5h-10zM28 43h5v5h-5zM38 43h5v5h-5zM48 43h5v5h-5zM28 48h10v5h-10zM48 48h5v5h-5zM28 53h5v5h-5zM48 53h5v5h-5zM33 58h15v5h-15zM58 28h25v5h-25zM78 33h5v5h-5zM73 38h5v5h-5zM68 43h5v5h-5zM63 48h5v5h-5zM63 53h5v5h-5zM63 58h5v5h-5z" fill="#a97bff" />
+<path d="M104 18h3v3h-3zM116 18h3v3h-3zM104 21h6v3h-6zM116 21h3v3h-3zM104 24h6v3h-6zM116 24h3v3h-3zM104 27h3v3h-3zM110 27h3v3h-3zM116 27h3v3h-3zM104 30h3v3h-3zM113 30h6v3h-6zM104 33h3v3h-3zM113 33h6v3h-6zM104 36h3v3h-3zM116 36h3v3h-3zM122 18h12v3h-12zM122 21h3v3h-3zM134 21h3v3h-3zM122 24h3v3h-3zM134 24h3v3h-3zM122 27h3v3h-3zM134 27h3v3h-3zM122 30h3v3h-3zM134 30h3v3h-3zM122 33h3v3h-3zM134 33h3v3h-3zM122 36h12v3h-12zM140 18h3v3h-3zM152 18h3v3h-3zM140 21h6v3h-6zM152 21h3v3h-3zM140 24h6v3h-6zM152 24h3v3h-3zM140 27h3v3h-3zM146 27h3v3h-3zM152 27h3v3h-3zM140 30h3v3h-3zM149 30h6v3h-6zM140 33h3v3h-3zM149 33h6v3h-6zM140 36h3v3h-3zM152 36h3v3h-3zM161 18h9v3h-9zM158 21h3v3h-3zM170 21h3v3h-3zM158 24h3v3h-3zM170 24h3v3h-3zM158 27h15v3h-15zM158 30h3v3h-3zM170 30h3v3h-3zM158 33h3v3h-3zM170 33h3v3h-3zM158 36h3v3h-3zM170 36h3v3h-3z" fill="#f4f1ff" />
+<text x="104" y="60" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="13" fill="#9a94b8">NewDayNewApp find new Android Projects from Github</text>
+<rect x="104" y="71" width="12" height="12" fill="#A97BFF"/>
+<text x="124" y="81" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="12" fill="#f4f1ff">Kotlin</text>
+<path d="M192 70h2v2h-2zM192 72h2v2h-2zM190 74h6v2h-6zM190 76h2v2h-2zM194 76h2v2h-2zM190 78h6v2h-6zM192 80h2v2h-2zM192 82h2v2h-2z" fill="#5dff8f" />
+<text x="206" y="81" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="12" fill="#9a94b8"><tspan fill="#5dff8f">23d ago</tspan> · add relative time display for updated apps</text>
+<g style="animation:twinkle 1.8s 1.05s infinite"><path d="M819 20h3v3h-3zM819 23h3v3h-3zM810 26h21v3h-21zM813 29h15v3h-15zM816 32h9v3h-9zM813 35h6v3h-6zM822 35h6v3h-6zM813 38h3v3h-3zM825 38h3v3h-3z" fill="#ffc83d" /></g>
+<path d="M841 20h15v3h-15zM841 23h3v3h-3zM841 26h12v3h-12zM853 29h3v3h-3zM853 32h3v3h-3zM841 35h3v3h-3zM853 35h3v3h-3zM844 38h9v3h-9z" fill="#ffc83d" />
+<path d="M824 58h4v2h-4zM834 58h4v2h-4zM824 60h4v2h-4zM834 60h4v2h-4zM826 62h2v2h-2zM834 62h2v2h-2zM826 64h10v2h-10zM830 66h2v2h-2zM828 68h6v2h-6zM828 70h6v2h-6z" fill="#9a94b8" />
+<path d="M850 58h2v2h-2zM848 60h4v2h-4zM850 62h2v2h-2zM850 64h2v2h-2zM850 66h2v2h-2zM850 68h2v2h-2zM848 70h6v2h-6z" fill="#9a94b8" />
+</g>
+</svg>

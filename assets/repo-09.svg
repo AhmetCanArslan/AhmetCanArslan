@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 100" width="880" height="100" shape-rendering="crispEdges">
+<style>
+@keyframes blink{0%,49%{opacity:1}50%,100%{opacity:0}}
+@keyframes twinkle{0%,100%{opacity:.15}50%{opacity:1}}
+@keyframes pop{0%{opacity:0;transform:translateY(10px)}100%{opacity:1;transform:translateY(0)}}
+@keyframes slide{0%{opacity:0;transform:translateX(-24px)}100%{opacity:1;transform:translateX(0)}}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
+@keyframes march{to{stroke-dashoffset:-32}}
+@keyframes sweep{0%{transform:translateX(-200px)}35%,100%{transform:translateX(1080px)}}
+@keyframes cell{0%{opacity:0}100%{opacity:1}}
+.blink{animation:blink 1s steps(1) infinite}
+
+</style>
+<defs><linearGradient id="shine" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".07"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+<clipPath id="clip"><rect x="4" y="4" width="872" height="88"/></clipPath></defs>
+<rect width="880" height="100" fill="#0d0b14"/>
+<g style="animation:slide .5s 0.54s both">
+<rect x="4" y="4" width="872" height="88" fill="#15121f" stroke="#2e2747" stroke-width="2"/>
+<path d="M3 3h12v2h-10v10h-2zM877 93h-12v-2h10v-10h2z" fill="#a97bff"/>
+<rect x="5" y="5" width="6" height="86" fill="#a97bff" style="animation:pulse 2.4s 1.8s infinite"/>
+<g clip-path="url(#clip)"><rect x="0" y="4" width="160" height="88" fill="url(#shine)" style="animation:sweep 7s 3.15s linear infinite"/></g>
+<path d="M33 28h15v5h-15zM28 33h5v5h-5zM48 33h5v5h-5zM28 38h5v5h-5zM43 38h10v5h-10zM28 43h5v5h-5zM38 43h5v5h-5zM48 43h5v5h-5zM28 48h10v5h-10zM48 48h5v5h-5zM28 53h5v5h-5zM48 53h5v5h-5zM33 58h15v5h-15zM63 28h15v5h-15zM58 33h5v5h-5zM78 33h5v5h-5zM58 38h5v5h-5zM78 38h5v5h-5zM63 43h20v5h-20zM78 48h5v5h-5zM78 53h5v5h-5zM63 58h15v5h-15z" fill="#a97bff" />
+<path d="M104 18h3v3h-3zM116 18h3v3h-3zM104 21h6v3h-6zM116 21h3v3h-3zM104 24h6v3h-6zM116 24h3v3h-3zM104 27h3v3h-3zM110 27h3v3h-3zM116 27h3v3h-3zM104 30h3v3h-3zM113 30h6v3h-6zM104 33h3v3h-3zM113 33h6v3h-6zM104 36h3v3h-3zM116 36h3v3h-3zM122 18h15v3h-15zM122 21h3v3h-3zM122 24h3v3h-3zM122 27h12v3h-12zM122 30h3v3h-3zM122 33h3v3h-3zM122 36h15v3h-15zM140 18h15v3h-15zM146 21h3v3h-3zM146 24h3v3h-3zM146 27h3v3h-3zM146 30h3v3h-3zM146 33h3v3h-3zM146 36h3v3h-3zM158 18h3v3h-3zM170 18h3v3h-3zM158 21h3v3h-3zM170 21h3v3h-3zM158 24h3v3h-3zM170 24h3v3h-3zM158 27h3v3h-3zM164 27h3v3h-3zM170 27h3v3h-3zM158 30h3v3h-3zM164 30h3v3h-3zM170 30h3v3h-3zM158 33h6v3h-6zM167 33h6v3h-6zM158 36h3v3h-3zM170 36h3v3h-3zM179 18h9v3h-9zM176 21h3v3h-3zM188 21h3v3h-3zM176 24h3v3h-3zM188 24h3v3h-3zM176 27h3v3h-3zM188 27h3v3h-3zM176 30h3v3h-3zM188 30h3v3h-3zM176 33h3v3h-3zM188 33h3v3h-3zM179 36h9v3h-9zM194 18h12v3h-12zM194 21h3v3h-3zM206 21h3v3h-3zM194 24h3v3h-3zM206 24h3v3h-3zM194 27h12v3h-12zM194 30h3v3h-3zM200 30h3v3h-3zM194 33h3v3h-3zM203 33h3v3h-3zM194 36h3v3h-3zM206 36h3v3h-3zM212 18h3v3h-3zM224 18h3v3h-3zM212 21h3v3h-3zM221 21h3v3h-3zM212 24h3v3h-3zM218 24h3v3h-3zM212 27h6v3h-6zM212 30h3v3h-3zM218 30h3v3h-3zM212 33h3v3h-3zM221 33h3v3h-3zM212 36h3v3h-3zM224 36h3v3h-3zM233 18h12v3h-12zM230 21h3v3h-3zM230 24h3v3h-3zM230 27h3v3h-3zM230 30h3v3h-3zM230 33h3v3h-3zM233 36h12v3h-12zM248 18h3v3h-3zM260 18h3v3h-3zM248 21h3v3h-3zM260 21h3v3h-3zM248 24h3v3h-3zM260 24h3v3h-3zM248 27h15v3h-15zM248 30h3v3h-3zM260 30h3v3h-3zM248 33h3v3h-3zM260 33h3v3h-3zM248 36h3v3h-3zM260 36h3v3h-3zM266 18h15v3h-15zM266 21h3v3h-3zM266 24h3v3h-3zM266 27h12v3h-12zM266 30h3v3h-3zM266 33h3v3h-3zM266 36h15v3h-15zM287 18h12v3h-12zM284 21h3v3h-3zM284 24h3v3h-3zM284 27h3v3h-3zM284 30h3v3h-3zM284 33h3v3h-3zM287 36h12v3h-12zM302 18h3v3h-3zM314 18h3v3h-3zM302 21h3v3h-3zM311 21h3v3h-3zM302 24h3v3h-3zM308 24h3v3h-3zM302 27h6v3h-6zM302 30h3v3h-3zM308 30h3v3h-3zM302 33h3v3h-3zM311 33h3v3h-3zM302 36h3v3h-3zM314 36h3v3h-3zM320 18h15v3h-15zM320 21h3v3h-3zM320 24h3v3h-3zM320 27h12v3h-12zM320 30h3v3h-3zM320 33h3v3h-3zM320 36h15v3h-15zM338 18h12v3h-12zM338 21h3v3h-3zM350 21h3v3h-3zM338 24h3v3h-3zM350 24h3v3h-3zM338 27h12v3h-12zM338 30h3v3h-3zM344 30h3v3h-3zM338 33h3v3h-3zM347 33h3v3h-3zM338 36h3v3h-3zM350 36h3v3h-3z" fill="#f4f1ff" />
+<text x="104" y="60" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="13" fill="#9a94b8">Check your internet connection on background and foreground for to see if…</text>
+<rect x="104" y="71" width="12" height="12" fill="#A97BFF"/>
+<text x="124" y="81" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="12" fill="#f4f1ff">Kotlin</text>
+<path d="M192 70h2v2h-2zM192 72h2v2h-2zM190 74h6v2h-6zM190 76h2v2h-2zM194 76h2v2h-2zM190 78h6v2h-6zM192 80h2v2h-2zM192 82h2v2h-2z" fill="#5dff8f" />
+<text x="206" y="81" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="12" fill="#9a94b8"><tspan fill="#5dff8f">6mo ago</tspan> · Implement adjustable network check interval and upd…</text>
+<g style="animation:twinkle 1.8s 1.35s infinite"><path d="M819 20h3v3h-3zM819 23h3v3h-3zM810 26h21v3h-21zM813 29h15v3h-15zM816 32h9v3h-9zM813 35h6v3h-6zM822 35h6v3h-6zM813 38h3v3h-3zM825 38h3v3h-3z" fill="#ffc83d" /></g>
+<path d="M841 20h12v3h-12zM853 23h3v3h-3zM853 26h3v3h-3zM844 29h9v3h-9zM853 32h3v3h-3zM853 35h3v3h-3zM841 38h12v3h-12z" fill="#ffc83d" />
+<path d="M824 58h4v2h-4zM834 58h4v2h-4zM824 60h4v2h-4zM834 60h4v2h-4zM826 62h2v2h-2zM834 62h2v2h-2zM826 64h10v2h-10zM830 66h2v2h-2zM828 68h6v2h-6zM828 70h6v2h-6z" fill="#9a94b8" />
+<path d="M850 58h2v2h-2zM848 60h4v2h-4zM850 62h2v2h-2zM850 64h2v2h-2zM850 66h2v2h-2zM850 68h2v2h-2zM848 70h6v2h-6z" fill="#9a94b8" />
+</g>
+</svg>

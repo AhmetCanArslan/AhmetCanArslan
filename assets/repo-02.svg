@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 100" width="880" height="100" shape-rendering="crispEdges">
+<style>
+@keyframes blink{0%,49%{opacity:1}50%,100%{opacity:0}}
+@keyframes twinkle{0%,100%{opacity:.15}50%{opacity:1}}
+@keyframes pop{0%{opacity:0;transform:translateY(10px)}100%{opacity:1;transform:translateY(0)}}
+@keyframes slide{0%{opacity:0;transform:translateX(-24px)}100%{opacity:1;transform:translateX(0)}}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
+@keyframes march{to{stroke-dashoffset:-32}}
+@keyframes sweep{0%{transform:translateX(-200px)}35%,100%{transform:translateX(1080px)}}
+@keyframes cell{0%{opacity:0}100%{opacity:1}}
+.blink{animation:blink 1s steps(1) infinite}
+
+</style>
+<defs><linearGradient id="shine" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".07"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+<clipPath id="clip"><rect x="4" y="4" width="872" height="88"/></clipPath></defs>
+<rect width="880" height="100" fill="#0d0b14"/>
+<g style="animation:slide .5s 0.12s both">
+<rect x="4" y="4" width="872" height="88" fill="#15121f" stroke="#2e2747" stroke-width="2"/>
+<path d="M3 3h12v2h-10v10h-2zM877 93h-12v-2h10v-10h2z" fill="#29e0ff"/>
+<rect x="5" y="5" width="6" height="86" fill="#29e0ff" style="animation:pulse 2.4s 0.4s infinite"/>
+<g clip-path="url(#clip)"><rect x="0" y="4" width="160" height="88" fill="url(#shine)" style="animation:sweep 7s 0.70s linear infinite"/></g>
+<path d="M33 28h15v5h-15zM28 33h5v5h-5zM48 33h5v5h-5zM28 38h5v5h-5zM43 38h10v5h-10zM28 43h5v5h-5zM38 43h5v5h-5zM48 43h5v5h-5zM28 48h10v5h-10zM48 48h5v5h-5zM28 53h5v5h-5zM48 53h5v5h-5zM33 58h15v5h-15zM63 28h15v5h-15zM58 33h5v5h-5zM78 33h5v5h-5zM78 38h5v5h-5zM73 43h5v5h-5zM68 48h5v5h-5zM63 53h5v5h-5zM58 58h25v5h-25z" fill="#29e0ff" />
+<path d="M107 18h12v3h-12zM104 21h3v3h-3zM104 24h3v3h-3zM104 27h3v3h-3zM104 30h3v3h-3zM104 33h3v3h-3zM107 36h12v3h-12zM122 18h3v3h-3zM134 18h3v3h-3zM122 21h3v3h-3zM134 21h3v3h-3zM122 24h3v3h-3zM134 24h3v3h-3zM122 27h3v3h-3zM134 27h3v3h-3zM122 30h3v3h-3zM134 30h3v3h-3zM122 33h3v3h-3zM134 33h3v3h-3zM125 36h9v3h-9zM143 18h12v3h-12zM140 21h3v3h-3zM140 24h3v3h-3zM143 27h9v3h-9zM152 30h3v3h-3zM152 33h3v3h-3zM140 36h12v3h-12zM158 18h15v3h-15zM164 21h3v3h-3zM164 24h3v3h-3zM164 27h3v3h-3zM164 30h3v3h-3zM164 33h3v3h-3zM164 36h3v3h-3zM179 18h9v3h-9zM176 21h3v3h-3zM188 21h3v3h-3zM176 24h3v3h-3zM188 24h3v3h-3zM176 27h3v3h-3zM188 27h3v3h-3zM176 30h3v3h-3zM188 30h3v3h-3zM176 33h3v3h-3zM188 33h3v3h-3zM179 36h9v3h-9zM194 18h3v3h-3zM206 18h3v3h-3zM194 21h6v3h-6zM203 21h6v3h-6zM194 24h3v3h-3zM200 24h3v3h-3zM206 24h3v3h-3zM194 27h3v3h-3zM200 27h3v3h-3zM206 27h3v3h-3zM194 30h3v3h-3zM206 30h3v3h-3zM194 33h3v3h-3zM206 33h3v3h-3zM194 36h3v3h-3zM206 36h3v3h-3zM215 18h9v3h-9zM212 21h3v3h-3zM224 21h3v3h-3zM212 24h3v3h-3zM224 24h3v3h-3zM212 27h15v3h-15zM212 30h3v3h-3zM224 30h3v3h-3zM212 33h3v3h-3zM224 33h3v3h-3zM212 36h3v3h-3zM224 36h3v3h-3zM230 18h3v3h-3zM242 18h3v3h-3zM230 21h6v3h-6zM242 21h3v3h-3zM230 24h6v3h-6zM242 24h3v3h-3zM230 27h3v3h-3zM236 27h3v3h-3zM242 27h3v3h-3zM230 30h3v3h-3zM239 30h6v3h-6zM230 33h3v3h-3zM239 33h6v3h-6zM230 36h3v3h-3zM242 36h3v3h-3zM248 18h15v3h-15zM254 21h3v3h-3zM254 24h3v3h-3zM254 27h3v3h-3zM254 30h3v3h-3zM254 33h3v3h-3zM248 36h15v3h-15zM266 18h3v3h-3zM278 18h3v3h-3zM266 21h6v3h-6zM275 21h6v3h-6zM266 24h3v3h-3zM272 24h3v3h-3zM278 24h3v3h-3zM266 27h3v3h-3zM272 27h3v3h-3zM278 27h3v3h-3zM266 30h3v3h-3zM278 30h3v3h-3zM266 33h3v3h-3zM278 33h3v3h-3zM266 36h3v3h-3zM278 36h3v3h-3zM287 18h9v3h-9zM284 21h3v3h-3zM296 21h3v3h-3zM284 24h3v3h-3zM296 24h3v3h-3zM284 27h15v3h-15zM284 30h3v3h-3zM296 30h3v3h-3zM284 33h3v3h-3zM296 33h3v3h-3zM284 36h3v3h-3zM296 36h3v3h-3zM302 18h15v3h-15zM308 21h3v3h-3zM308 24h3v3h-3zM308 27h3v3h-3zM308 30h3v3h-3zM308 33h3v3h-3zM308 36h3v3h-3zM323 18h9v3h-9zM320 21h3v3h-3zM332 21h3v3h-3zM320 24h3v3h-3zM332 24h3v3h-3zM320 27h3v3h-3zM332 27h3v3h-3zM320 30h3v3h-3zM332 30h3v3h-3zM320 33h3v3h-3zM332 33h3v3h-3zM323 36h9v3h-9zM338 18h12v3h-12zM338 21h3v3h-3zM350 21h3v3h-3zM338 24h3v3h-3zM350 24h3v3h-3zM338 27h12v3h-12zM338 30h3v3h-3zM344 30h3v3h-3zM338 33h3v3h-3zM347 33h3v3h-3zM338 36h3v3h-3zM350 36h3v3h-3z" fill="#f4f1ff" />
+<text x="104" y="60" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="13" fill="#9a94b8">An Android Toolbox to tweak your phone easier!</text>
+<rect x="104" y="71" width="12" height="12" fill="#A97BFF"/>
+<text x="124" y="81" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="12" fill="#f4f1ff">Kotlin</text>
+<path d="M192 70h2v2h-2zM192 72h2v2h-2zM190 74h6v2h-6zM190 76h2v2h-2zM194 76h2v2h-2zM190 78h6v2h-6zM192 80h2v2h-2zM192 82h2v2h-2z" fill="#5dff8f" />
+<text x="206" y="81" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="12" fill="#9a94b8"><tspan fill="#5dff8f">2d ago</tspan> · Add toast notification feature for OTP copying func…</text>
+<g style="animation:twinkle 1.8s 0.30s infinite"><path d="M783 20h3v3h-3zM783 23h3v3h-3zM774 26h21v3h-21zM777 29h15v3h-15zM780 32h9v3h-9zM777 35h6v3h-6zM786 35h6v3h-6zM777 38h3v3h-3zM789 38h3v3h-3z" fill="#ffc83d" /></g>
+<path d="M811 20h3v3h-3zM808 23h6v3h-6zM811 26h3v3h-3zM811 29h3v3h-3zM811 32h3v3h-3zM811 35h3v3h-3zM808 38h9v3h-9zM823 20h12v3h-12zM835 23h3v3h-3zM835 26h3v3h-3zM826 29h9v3h-9zM835 32h3v3h-3zM835 35h3v3h-3zM823 38h12v3h-12zM844 20h9v3h-9zM841 23h3v3h-3zM853 23h3v3h-3zM853 26h3v3h-3zM850 29h3v3h-3zM847 32h3v3h-3zM844 35h3v3h-3zM841 38h15v3h-15z" fill="#ffc83d" />
+<path d="M812 58h4v2h-4zM822 58h4v2h-4zM812 60h4v2h-4zM822 60h4v2h-4zM814 62h2v2h-2zM822 62h2v2h-2zM814 64h10v2h-10zM818 66h2v2h-2zM816 68h6v2h-6zM816 70h6v2h-6z" fill="#9a94b8" />
+<path d="M838 58h2v2h-2zM836 60h4v2h-4zM838 62h2v2h-2zM838 64h2v2h-2zM838 66h2v2h-2zM838 68h2v2h-2zM836 70h6v2h-6zM852 58h2v2h-2zM850 60h4v2h-4zM848 62h2v2h-2zM852 62h2v2h-2zM846 64h2v2h-2zM852 64h2v2h-2zM846 66h10v2h-10zM852 68h2v2h-2zM852 70h2v2h-2z" fill="#9a94b8" />
+</g>
+</svg>
