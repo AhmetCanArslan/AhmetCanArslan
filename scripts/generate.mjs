@@ -1,8 +1,8 @@
 #!/usr/bin/env node
-// Generates the animated pixel-art SVG cards in assets/ and the top repo list in README.md.
+// Generates the animated pixel-art SVG cards in assets/.
 // Usage: GITHUB_TOKEN=... node scripts/generate.mjs
 
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -13,7 +13,6 @@ const TOKEN = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
 const DISPLAY_NAME = 'AHMET CAN ARSLAN';
 const TAGLINE = 'ANDROID DEVELOPER // GRAD CS STUDENT';
 const CLASS_NAME = 'ANDROID KNIGHT';
-const TOP_N = 10;
 const W = 880;
 
 const C = {
@@ -32,7 +31,6 @@ const C = {
   orange: '#ff8a3d',
 };
 const VIVID = [C.gold, C.magenta, C.cyan, C.green, C.purple, C.orange];
-const MONO = 'ui-monospace,SFMono-Regular,Menlo,Consolas,monospace';
 
 // ---------------------------------------------------------------- pixel font
 
@@ -94,15 +92,9 @@ const FONT = {
 
 const ICONS = {
   star: '...#.../...#.../#######/.#####./..###../.##.##./.#...#.',
-  fork: '##...##/##...##/.#...#./.#####./...#.../..###../..###..',
-  person: '..###../..###../..###../......./.#####./#######/#######',
   check: '......./......#/.....##/#...##./##.##../.###.../..#....',
-  merge: '##...../##...../.#...../.####../.#...##/##...##/##.....',
   commit: '...#.../...#.../..###../..#.#../..###../...#.../...#...',
 };
-
-const esc = (s) =>
-  String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 const ascii = (s) =>
   String(s)
@@ -110,8 +102,6 @@ const ascii = (s) =>
     .replace(/İ/g, 'I')
     .normalize('NFD')
     .replace(/[̀-ͯ]/g, '');
-
-const truncate = (s, n) => (s.length > n ? `${s.slice(0, n - 1).trimEnd()}…` : s);
 
 // Bitmap rows -> one path of merged horizontal runs.
 function bitmapPath(rows, x, y, s) {
@@ -191,15 +181,6 @@ const sectionTitle = (title, accent) =>
 
 const fmt = (n) => n.toLocaleString('en-US');
 
-function relTime(iso, now) {
-  const days = Math.floor((now - new Date(iso)) / 86400000);
-  if (days <= 0) return 'today';
-  if (days === 1) return 'yesterday';
-  if (days < 30) return `${days}d ago`;
-  if (days < 365) return `${Math.floor(days / 30)}mo ago`;
-  return `${Math.floor(days / 365)}y ago`;
-}
-
 // ---------------------------------------------------------------- data
 
 async function gql(query, variables = {}) {
@@ -216,14 +197,11 @@ async function gql(query, variables = {}) {
 async function fetchData() {
   const { user } = await gql(
     `query($login:String!){user(login:$login){
-      id createdAt followers{totalCount}
-      pullRequests(states:MERGED){totalCount}
+      id createdAt
       repositories(first:100,ownerAffiliations:OWNER,privacy:PUBLIC,orderBy:{field:STARGAZERS,direction:DESC}){nodes{
-        name url description stargazerCount forkCount isFork
-        primaryLanguage{name color}
+        stargazerCount isFork
         languages(first:20,orderBy:{field:SIZE,direction:DESC}){edges{size node{name color}}}
         issues(states:CLOSED){totalCount}
-        defaultBranchRef{target{... on Commit{messageHeadline committedDate}}}
       }}
     }}`,
     { login: LOGIN },
@@ -263,19 +241,13 @@ async function fetchData() {
     .map((l) => ({ ...l, pct: (l.size / totalBytes) * 100 }));
 
   return {
-    now,
     joinedYear: firstYear,
     level: Math.floor((now - new Date(user.createdAt)) / (365.25 * 86400000)),
     stars: repos.reduce((s, r) => s + r.stargazerCount, 0),
-    forks: repos.reduce((s, r) => s + r.forkCount, 0),
-    followers: user.followers.totalCount,
     solvedIssues: repos.reduce((s, r) => s + r.issues.totalCount, 0),
-    mergedPRs: user.pullRequests.totalCount,
     commits,
     privateRepos,
     languages,
-    // The profile repo itself is not a project, keep it off the leaderboard.
-    topRepos: repos.filter((r) => r.name !== LOGIN).slice(0, TOP_N),
   };
 }
 
@@ -363,16 +335,13 @@ function statsCard(d) {
     ['star', 'TOTAL STARS', d.stars, C.gold],
     ['check', 'ISSUES SOLVED', d.solvedIssues, C.green],
     ['commit', 'COMMITS', d.commits, C.cyan],
-    ['merge', 'MERGED PRS', d.mergedPRs, C.purple],
-    ['fork', 'FORKS', d.forks, C.orange],
-    ['person', 'FOLLOWERS', d.followers, C.magenta],
   ];
   const tw = 272;
   const th = 84;
   const body = tiles
     .map(([ic, label, value, color], i) => {
-      const x = 16 + (i % 3) * (tw + 16);
-      const y = 44 + Math.floor(i / 3) * (th + 14);
+      const x = 16 + i * (tw + 16);
+      const y = 44;
       return `<g style="animation:pop .45s ${(i * 0.1).toFixed(1)}s both">
 ${panel(x, y, tw, th, color)}
 <rect x="${x + 1}" y="${y + 1}" width="6" height="${th - 2}" fill="${color}" style="animation:pulse 2.4s ${(i * 0.3).toFixed(1)}s infinite"/>
@@ -382,12 +351,12 @@ ${pix(label, x + 88, y + 56, 2, color)}
 </g>`;
     })
     .join('\n');
-  return svg(44 + 2 * th + 14 + 16, `<rect width="${W}" height="100%" fill="${C.bg}"/>${sectionTitle('PLAYER STATS', C.gold)}${body}`);
+  return svg(44 + th + 16, `<rect width="${W}" height="100%" fill="${C.bg}"/>${sectionTitle('PLAYER STATS', C.gold)}${body}`);
 }
 
 function languagesCard(d) {
-  const top = d.languages.slice(0, 6);
-  const rest = d.languages.slice(6);
+  const top = d.languages.slice(0, 2);
+  const rest = d.languages.slice(2);
   if (rest.length) {
     top.push({ name: 'Other', color: C.muted, pct: rest.reduce((s, l) => s + l.pct, 0) });
   }
@@ -416,67 +385,7 @@ ${pixRight(`${lang.pct.toFixed(1)}%`, W - 16, y, 2, lang.color)}`;
   );
 }
 
-const reposTitleCard = () =>
-  svg(40, `<rect width="${W}" height="100%" fill="${C.bg}"/>${sectionTitle(`TOP ${TOP_N} REPOS BY STARS`, C.magenta)}`);
-
-function repoCard(repo, rank, now) {
-  const H = 100;
-  const accent = [C.gold, C.cyan, C.magenta][rank - 1] ?? C.purple;
-  const lang = repo.primaryLanguage;
-  const commit = repo.defaultBranchRef?.target;
-  const starText = fmt(repo.stargazerCount);
-  const forkText = fmt(repo.forkCount);
-  const langLabel = lang ? lang.name : 'n/a';
-  const commitX = 104 + 22 + langLabel.length * 7 + 18;
-  return svg(
-    H,
-    `<defs><linearGradient id="shine" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".07"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
-<clipPath id="clip"><rect x="4" y="4" width="${W - 8}" height="${H - 12}"/></clipPath></defs>
-<rect width="${W}" height="${H}" fill="${C.bg}"/>
-<g style="animation:slide .5s ${(rank * 0.06).toFixed(2)}s both">
-${panel(4, 4, W - 8, H - 12, accent)}
-<rect x="5" y="5" width="6" height="${H - 14}" fill="${accent}" style="animation:pulse 2.4s ${(rank * 0.2).toFixed(1)}s infinite"/>
-<g clip-path="url(#clip)"><rect x="0" y="4" width="160" height="${H - 12}" fill="url(#shine)" style="animation:sweep 7s ${(rank * 0.35).toFixed(2)}s linear infinite"/></g>
-${pix(String(rank).padStart(2, '0'), 28, 28, 5, accent)}
-${pix(repo.name, 104, 18, 3, C.text)}
-<text x="104" y="60" font-family="${MONO}" font-size="13" fill="${C.muted}">${esc(truncate(repo.description ?? 'No description', 74))}</text>
-<rect x="104" y="71" width="12" height="12" fill="${lang?.color ?? C.dim}"/>
-<text x="124" y="81" font-family="${MONO}" font-size="12" fill="${C.text}">${esc(langLabel)}</text>
-${
-  commit
-    ? `${icon('commit', commitX, 70, 2, C.green)}
-<text x="${commitX + 20}" y="81" font-family="${MONO}" font-size="12" fill="${C.muted}"><tspan fill="${C.green}">${esc(
-        relTime(commit.committedDate, now),
-      )}</tspan> · ${esc(truncate(commit.messageHeadline, 52))}</text>`
-    : ''
-}
-<g style="animation:twinkle 1.8s ${(rank * 0.15).toFixed(2)}s infinite">${icon('star', W - 24 - pixWidth(starText, 3) - 31, 20, 3, C.gold)}</g>
-${pixRight(starText, W - 24, 20, 3, C.gold)}
-${icon('fork', W - 24 - pixWidth(forkText, 2) - 22, 58, 2, C.muted)}
-${pixRight(forkText, W - 24, 58, 2, C.muted)}
-</g>`,
-  );
-}
-
 // ---------------------------------------------------------------- main
-
-async function updateReadme(repos) {
-  const path = join(ROOT, 'README.md');
-  const readme = await readFile(path, 'utf8');
-  const list = repos
-    .map(
-      (repo, i) =>
-        `<a href="${repo.url}"><img src="assets/repo-${String(i + 1).padStart(2, '0')}.svg" width="100%" alt="#${i + 1} ${esc(
-          repo.name,
-        )} - ${repo.stargazerCount} stars"></a>`,
-    )
-    .join('\n');
-  const next = readme.replace(
-    /(<!-- TOP_REPOS:START -->)[\s\S]*?(<!-- TOP_REPOS:END -->)/,
-    (_, start, end) => `${start}\n${list}\n${end}`,
-  );
-  if (next !== readme) await writeFile(path, next);
-}
 
 async function main() {
   if (!TOKEN) throw new Error('Set GITHUB_TOKEN (or GH_TOKEN) to query the GitHub API.');
@@ -486,13 +395,8 @@ async function main() {
     'hero.svg': heroCard(data),
     'stats.svg': statsCard(data),
     'languages.svg': languagesCard(data),
-    'repos-title.svg': reposTitleCard(),
   };
-  data.topRepos.forEach((repo, i) => {
-    files[`repo-${String(i + 1).padStart(2, '0')}.svg`] = repoCard(repo, i + 1, data.now);
-  });
   await Promise.all(Object.entries(files).map(([name, content]) => writeFile(join(ASSETS, name), content)));
-  await updateReadme(data.topRepos);
   console.log(
     `Generated ${Object.keys(files).length} cards: ${data.stars} stars, ${data.solvedIssues} issues solved, ${data.commits} commits (${data.privateRepos} private repos visible).`,
   );
