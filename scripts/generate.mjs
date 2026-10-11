@@ -48,28 +48,61 @@ function text(str, x, y, size, font, cls, track = 0) {
 
 const SPRITES = {
   dino: [
-    '............########..',
-    '...........##########.',
-    '...........##.#######.',
-    '...........##########.',
-    '...........##########.',
-    '...........##########.',
-    '...........#####......',
-    '...........########...',
-    '#.........#####.......',
-    '#........######.......',
-    '##......##########....',
-    '###....#########.#....',
-    '#####.##########......',
-    '################......',
-    '################......',
-    '.##############.......',
-    '..#############.......',
-    '...###########........',
-    '....#########.........',
+    '.........................################...',
+    '.........................################...',
+    '.......................####################.',
+    '.......................#####WW#############.',
+    '.......................#####WW#############.',
+    '.......................####################.',
+    '.......................####################.',
+    '.......................####################.',
+    '.......................####################.',
+    '.......................####################.',
+    '.......................##########...........',
+    '.......................##########...........',
+    '.......................################.....',
+    '.......................################.....',
+    '.......................#########............',
+    '.....................BLW########............',
+    '##.................BBLBW#######.............',
+    '##.................DBLBBW######.............',
+    '##................BBDLBBBWWWWWW.............',
+    '##..............DBBBBLBBBWWRRWWB............',
+    '#####.........BBBBBBBDLBBBWRRWBB............',
+    '#####.........BBBBBBBBLBBBBRRBBB............',
+    '.######......DBBBBBBBBDLBBBRRBBB............',
+    '.#######....DBBBBBBBBBBLBBBRRBLBD...........',
+    '.###########BBBBBBBLBBBDLBBRRBBDD...........',
+    '..##########BBBBBBLLBBDBDLBRRBBDBB..........',
+    '..###########BBBBBBLBBDBBBLBLBDDBB..........',
+    '..###########BBBBBBLBBBBBBDLBBD..#..........',
+    '....##########DBBBBLBBB..BBB.....#..........',
+    '....###########BBBBBLLL..##B................',
+    '......###########LBBBBLB.##B................',
+    '......###########LLBBDDD###B................',
+    '.......###########LLLBBDD##B................',
+    '........##########BLLLBBBBB.................',
+    '...........#######BBBDLLBB..................',
+    '...........#######BBBBDBB...................',
+    '...........#######...BBBB...................',
+    '...........#######...BBBB...................',
   ],
-  legsA: ['.....###.##...........', '.....##...##..........', '.....#................', '.....##...............'],
-  legsB: ['.....##..###..........', '......##..#...........', '..........#...........', '..........##..........'],
+  legsA: [
+    '............####.....BBBB...................',
+    '............####......####..................',
+    '............####......#######...............',
+    '............####......#######...............',
+    '............######..........................',
+    '............######..........................',
+  ],
+  legsB: [
+    '............####.....BBBB...................',
+    '............####......####..................',
+    '............######....####..................',
+    '............######....####..................',
+    '......................#######...............',
+    '......................#######...............',
+  ],
   cactus: [
     '....###....',
     '....###....',
@@ -103,6 +136,8 @@ const SPRITES = {
     '..##...',
     '..##...',
   ],
+  flower: ['.W.', 'WYW', '.W.'],
+  stone: ['.SSS.', 'SSSSs', 'Sssss'],
   cloud: [
     '.........######........',
     '.......##......###.....',
@@ -116,18 +151,18 @@ const SPRITES = {
   commit: ['...#...', '...#...', '..###..', '..#.#..', '..###..', '...#...', '...#...'],
 };
 
-// Bitmap rows -> one path of merged horizontal runs.
-function bitmapPath(rows, x, y, s) {
+// Bitmap rows -> one path of merged horizontal runs of `ch`.
+function bitmapPath(rows, x, y, s, ch = '#') {
   let d = '';
   rows.forEach((row, r) => {
     let c = 0;
     while (c < row.length) {
-      if (row[c] !== '#') {
+      if (row[c] !== ch) {
         c++;
         continue;
       }
       let len = 1;
-      while (row[c + len] === '#') len++;
+      while (row[c + len] === ch) len++;
       d += `M${x + c * s} ${y + r * s}h${len * s}v${s}h${-len * s}z`;
       c += len;
     }
@@ -135,7 +170,39 @@ function bitmapPath(rows, x, y, s) {
   return d;
 }
 
-const sprite = (name, x, y, s, attrs = '') => `<path d="${bitmapPath(SPRITES[name], x, y, s)}" ${attrs}/>`;
+// '#' takes the fill of its surroundings, the other letters are fixed colors.
+const SPRITE_FILLS = {
+  B: '#7a4a2b',
+  L: '#99643c',
+  D: '#5a3620',
+  W: '#f5f5f5',
+  R: '#d0342c',
+  Y: '#f2b233',
+  S: '#9aa0a8',
+  s: '#6f757d',
+};
+
+// Fixed colors of the runner scene, the same in both themes.
+const SCENE_FILLS = {
+  dirt: '#7a4a2b',
+  dirtDark: '#5a3620',
+  dirtLight: '#99643c',
+  grass: '#6aa833',
+  grassDark: '#4c8a2a',
+  grassLight: '#8cc63f',
+  cactus: '#2e7d4f',
+};
+
+function sprite(name, x, y, s, attrs = '') {
+  const rows = SPRITES[name];
+  const base = bitmapPath(rows, x, y, s);
+  const fills = Object.keys(SPRITE_FILLS)
+    .filter((ch) => rows.some((row) => row.includes(ch)))
+    .map((ch) => `<path fill="${SPRITE_FILLS[ch]}" d="${bitmapPath(rows, x, y, s, ch)}"/>`)
+    .join('');
+  if (!fills) return `<path d="${base}" ${attrs}/>`;
+  return `<g${attrs && ` ${attrs}`}>${base && `<path d="${base}"/>`}${fills}</g>`;
+}
 
 function rng(seed) {
   let a = seed >>> 0;
@@ -230,29 +297,49 @@ async function fetchData() {
 function dinoScene(H) {
   const LOOP = 4; // seconds per card width
   const GROUND = H - 30;
+  const GRASS = 12; // thickness of the grass band
   const DINO_X = 64;
   const JUMPS = [0.3, 0.75]; // loop fractions at which an obstacle reaches the dino
   const dinoMid = DINO_X + 22;
   const obstacleAt = (phase, width) => Math.round(dinoMid + phase * W - width / 2);
 
+  // A band of grass on top of dirt that runs to the bottom of the card.
   const rand = rng(1337);
-  let ground = '';
-  for (let x = 0; x < W; ) {
-    const len = Math.min(20 + Math.floor(rand() * 60) * 2, W - x);
-    ground += `M${x} ${GROUND}h${len}v2h${-len}z`;
-    x += len + (rand() < 0.3 ? 6 : 0);
+  const pick = (n) => Math.floor(rand() * n);
+  const rect = (x, y, w, h) => `M${x} ${y}h${w}v${h}h${-w}z`;
+  const DIRT = GROUND + GRASS;
+  const layer = {
+    dirt: rect(0, DIRT, W, H - DIRT),
+    dirtDark: '',
+    dirtLight: '',
+    grass: rect(0, GROUND, W, GRASS),
+    grassDark: rect(0, DIRT - 2, W, 2),
+    grassLight: '',
+  };
+  for (let x = 4 + pick(8) * 2; x < W - 12; x += 14 + pick(14) * 2) {
+    for (let i = 0, blades = 2 + pick(3); i < blades; i++) {
+      const h = 2 + pick(4) * 2;
+      layer[rand() < 0.4 ? 'grassDark' : 'grass'] += rect(x + i * 4 - pick(2) * 2, GROUND - h, 2, h);
+    }
   }
-  for (let i = 0; i < 40; i++) {
-    const x = Math.floor(rand() * (W / 2 - 4)) * 2;
-    const y = GROUND + 6 + Math.floor(rand() * 5) * 2;
-    const len = rand() < 0.5 ? 2 : 6;
-    ground += `M${x} ${y}h${len}v2h${-len}z`;
+  for (let i = 0; i < 70; i++) layer.grassLight += rect(pick(W / 2 - 2) * 2, GROUND + pick(4) * 2, 2 + pick(2) * 2, 2);
+  for (let i = 0; i < 90; i++) {
+    const y = DIRT + 2 + pick((H - DIRT - 4) / 2) * 2;
+    layer[rand() < 0.5 ? 'dirtDark' : 'dirtLight'] += rect(pick(W / 2 - 4) * 2, y, 2 + pick(3) * 2, 2);
   }
+  let decor = '';
+  for (let i = 0; i < 9; i++) decor += sprite('flower', 20 + pick(W / 2 - 24) * 2, GROUND + 2, 2);
+  for (let i = 0; i < 4; i++) decor += sprite('stone', 20 + pick(W / 2 - 24) * 2, GROUND + 2, 2);
+
   const big = obstacleAt(JUMPS[0], 22);
   const pair = obstacleAt(JUMPS[1], 32);
-  const strip = `<path d="${ground}"/>
-${sprite('cactus', big, GROUND - 30, 2)}
-${sprite('cactusSmall', pair, GROUND - 20, 2)}${sprite('cactusSmall', pair + 18, GROUND - 20, 2)}`;
+  const cactus = `fill="${SCENE_FILLS.cactus}"`;
+  const strip = `${Object.entries(layer)
+    .map(([name, d]) => `<path fill="${SCENE_FILLS[name]}" d="${d}"/>`)
+    .join('')}
+${decor}
+${sprite('cactus', big, GROUND - 30, 2, cactus)}
+${sprite('cactusSmall', pair, GROUND - 20, 2, cactus)}${sprite('cactusSmall', pair + 18, GROUND - 20, 2, cactus)}`;
   const clouds = `${sprite('cloud', 150, 22, 2)}${sprite('cloud', 520, GROUND - 84, 2)}${sprite('cloud', 770, 30, 2)}`;
 
   const pct = (f) => `${num(f * 100)}%`;
@@ -275,9 +362,9 @@ ${sprite('cactusSmall', pair, GROUND - 20, 2)}${sprite('cactusSmall', pair + 18,
 <g class="clouds line"><g id="clouds">${clouds}</g><use href="#clouds" x="${W}"/></g>
 <g class="ground"><g id="strip">${strip}</g><use href="#strip" x="${W}"/></g>
 <g class="dino">
-${sprite('dino', DINO_X, GROUND - 42, 2)}
-${sprite('legsA', DINO_X, GROUND - 4, 2, 'class="legs"')}
-${sprite('legsB', DINO_X, GROUND - 4, 2, 'class="legs" style="animation-delay:-.1s"')}
+${sprite('dino', DINO_X, GROUND - 40, 1)}
+${sprite('legsA', DINO_X, GROUND - 2, 1, 'class="legs"')}
+${sprite('legsB', DINO_X, GROUND - 2, 1, 'class="legs" style="animation-delay:-.1s"')}
 </g>
 </g>`,
   };
