@@ -253,7 +253,7 @@ function dinoScene(H) {
   const strip = `<path d="${ground}"/>
 ${sprite('cactus', big, GROUND - 30, 2)}
 ${sprite('cactusSmall', pair, GROUND - 20, 2)}${sprite('cactusSmall', pair + 18, GROUND - 20, 2)}`;
-  const clouds = `${sprite('cloud', 150, 22, 2)}${sprite('cloud', 520, 172, 2)}${sprite('cloud', 770, 30, 2)}`;
+  const clouds = `${sprite('cloud', 150, 22, 2)}${sprite('cloud', 520, GROUND - 84, 2)}${sprite('cloud', 770, 30, 2)}`;
 
   const pct = (f) => `${num(f * 100)}%`;
   const air = 0.3 / LOOP; // half a jump, as a loop fraction
@@ -284,11 +284,12 @@ ${sprite('legsB', DINO_X, GROUND - 4, 2, 'class="legs" style="animation-delay:-.
 }
 
 function heroCard(d, theme) {
-  const H = 280;
+  const H = 404;
   const x = 48;
   const scene = dinoScene(H);
 
   const tagSize = 15;
+  const tagX = num(x + textWidth(DISPLAY_NAME, 52, 'sans', -0.035) + 20);
   const step = textWidth('0', tagSize, 'mono');
   const steps = [...TAGLINE].length;
   const typed = Array.from({ length: steps + 1 }, (_, i) => num(i * step)).join(';');
@@ -299,43 +300,39 @@ function heroCard(d, theme) {
     H,
     `<defs>
 <clipPath id="card"><rect x="1" y="1" width="${W - 2}" height="${H - 2}" rx="12"/></clipPath>
-<clipPath id="type"><rect x="${x}" y="104" width="0" height="26"><animate attributeName="width" calcMode="discrete" values="${typed}" dur="2s" begin=".5s" fill="freeze"/></rect></clipPath>
+<clipPath id="type"><rect x="${tagX}" y="70" width="0" height="26"><animate attributeName="width" calcMode="discrete" values="${typed}" dur="2s" begin=".5s" fill="freeze"/></rect></clipPath>
 </defs>
 <rect class="card" x=".5" y=".5" width="${W - 1}" height="${H - 1}" rx="12"/>
 ${scene.body}
 ${text(DISPLAY_NAME, x, 88, 52, 'sans', 'fg', -0.035)}
-<g clip-path="url(#type)">${text(TAGLINE, x, 122, tagSize, 'mono', 'muted')}</g>
-${text(meta, x, 148, 12, 'mono', 'muted')}`,
+<g clip-path="url(#type)">${text(TAGLINE, tagX, 88, tagSize, 'mono', 'muted')}</g>
+${text(meta, x, 122, 12, 'mono', 'muted')}
+<rect class="line" x="${x}" y="152" width="${W - 2 * x}" height="1"/>
+${statsRow(d, x, 186)}`,
     scene.css,
   );
 }
 
-function statsCard(d, theme) {
+// Title plus one column per stat; `y` is the title baseline.
+function statsRow(d, pad, y) {
   const tiles = [
     ['star', 'TOTAL STARS', d.stars],
     ['check', 'ISSUES SOLVED', d.solvedIssues],
     ['commit', 'COMMITS', d.commits],
   ];
-  const H = 156;
-  const pad = 48;
   const col = (W - 2 * pad) / tiles.length;
   const body = tiles
     .map(([ic, label, value], i) => {
       const x = pad + i * col;
       return `<g style="animation:rise .5s ${(i * 0.08).toFixed(2)}s both">
-${sprite(ic, Math.round(x), 73, 2, 'class="px muted"')}
-${text(label, x + 24, 84, 11, 'mono', 'muted', 0.08)}
-${text(fmt(value), x, 124, 34, 'sans', 'fg', -0.03)}
+${sprite(ic, Math.round(x), y + 21, 2, 'class="px muted"')}
+${text(label, x + 24, y + 32, 11, 'mono', 'muted', 0.08)}
+${text(fmt(value), x, y + 72, 34, 'sans', 'fg', -0.03)}
 </g>`;
     })
     .join('\n');
-  return svg(
-    theme,
-    H,
-    `<rect class="card" x=".5" y=".5" width="${W - 1}" height="${H - 1}" rx="12"/>
-${text('Stats', pad, 44, 18, 'sans', 'fg', -0.02)}
-${body}`,
-  );
+  return `${text('Stats', pad, y, 18, 'sans', 'fg', -0.02)}
+${body}`;
 }
 
 // ---------------------------------------------------------------- main
@@ -345,10 +342,7 @@ async function main() {
   const data = await fetchData();
   await mkdir(ASSETS, { recursive: true });
   const files = {};
-  for (const [name, theme] of Object.entries(THEMES)) {
-    files[`hero-${name}.svg`] = heroCard(data, theme);
-    files[`stats-${name}.svg`] = statsCard(data, theme);
-  }
+  for (const [name, theme] of Object.entries(THEMES)) files[`hero-${name}.svg`] = heroCard(data, theme);
   await Promise.all(Object.entries(files).map(([name, content]) => writeFile(join(ASSETS, name), content)));
   console.log(
     `Generated ${Object.keys(files).length} cards: ${data.stars} stars, ${data.solvedIssues} issues solved, ${data.commits} commits (${data.privateRepos} private repos visible).`,
