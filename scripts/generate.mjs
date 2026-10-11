@@ -1,8 +1,8 @@
 #!/usr/bin/env node
-// Generates the animated pixel-art SVG cards in assets/.
+// Generates the animated SVG cards in assets/.
 // Usage: GITHUB_TOKEN=... node scripts/generate.mjs
 
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -10,98 +10,111 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const ASSETS = join(ROOT, 'assets');
 const LOGIN = process.env.GITHUB_REPOSITORY_OWNER || 'AhmetCanArslan';
 const TOKEN = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
-const DISPLAY_NAME = 'AHMET CAN ARSLAN';
-const TAGLINE = 'ANDROID DEVELOPER // GRAD CS STUDENT';
-const CLASS_NAME = 'ANDROID KNIGHT';
+const DISPLAY_NAME = 'Ahmet Can Arslan';
+const TAGLINE = 'Android Developer · Grad CS Student';
 const W = 880;
 
-const C = {
-  bg: '#0d0b14',
-  panel: '#15121f',
-  panelHi: '#1c1829',
-  border: '#2e2747',
-  dim: '#3a3357',
-  text: '#f4f1ff',
-  muted: '#9a94b8',
-  gold: '#ffc83d',
-  magenta: '#ff3d81',
-  cyan: '#29e0ff',
-  green: '#5dff8f',
-  purple: '#a97bff',
-  orange: '#ff8a3d',
+// Geist glyph outlines (SemiBold as `sans`, Mono Regular as `mono`), extracted from
+// github.com/vercel/geist-font (OFL). GitHub does not load fonts inside README images,
+// so text is drawn as paths.
+const GEIST = JSON.parse(await readFile(join(dirname(fileURLToPath(import.meta.url)), 'geist.json'), 'utf8'));
+
+// ---------------------------------------------------------------- text
+
+const num = (n) => +n.toFixed(2);
+
+// `track` is letter spacing in em.
+function textWidth(str, size, font, track = 0) {
+  const { upm, glyphs } = GEIST[font];
+  const chars = [...String(str)];
+  const units = chars.reduce((sum, ch) => sum + (glyphs[ch] ?? glyphs['?'])[0], 0);
+  return (units / upm + track * Math.max(0, chars.length - 1)) * size;
+}
+
+// Draws `str` with its baseline starting at (x, y).
+function text(str, x, y, size, font, cls, track = 0) {
+  const { upm, glyphs } = GEIST[font];
+  let pen = 0;
+  let out = '';
+  for (const ch of String(str)) {
+    const [advance, d] = glyphs[ch] ?? glyphs['?'];
+    if (d) out += `<path transform="translate(${pen})" d="${d}"/>`;
+    pen += advance + track * upm;
+  }
+  return `<g class="${cls}" transform="translate(${num(x)} ${num(y)}) scale(${num(size / upm)})">${out}</g>`;
+}
+
+// ---------------------------------------------------------------- pixel art
+
+const SPRITES = {
+  dino: [
+    '............########..',
+    '...........##########.',
+    '...........##.#######.',
+    '...........##########.',
+    '...........##########.',
+    '...........##########.',
+    '...........#####......',
+    '...........########...',
+    '#.........#####.......',
+    '#........######.......',
+    '##......##########....',
+    '###....#########.#....',
+    '#####.##########......',
+    '################......',
+    '################......',
+    '.##############.......',
+    '..#############.......',
+    '...###########........',
+    '....#########.........',
+  ],
+  legsA: ['.....###.##...........', '.....##...##..........', '.....#................', '.....##...............'],
+  legsB: ['.....##..###..........', '......##..#...........', '..........#...........', '..........##..........'],
+  cactus: [
+    '....###....',
+    '....###....',
+    '....###..#.',
+    '.#..###.###',
+    '###.###.###',
+    '###.###.###',
+    '###.###.###',
+    '###.###.###',
+    '#######.###',
+    '.##########',
+    '....######.',
+    '....###....',
+    '....###....',
+    '....###....',
+    '....###....',
+    '....###....',
+    '....###....',
+  ],
+  cactusSmall: [
+    '..##...',
+    '..##.#.',
+    '#.##.##',
+    '#.##.##',
+    '#.##.##',
+    '####.##',
+    '.######',
+    '..####.',
+    '..##...',
+    '..##...',
+    '..##...',
+    '..##...',
+  ],
+  cloud: [
+    '.........######........',
+    '.......##......###.....',
+    '....###...........#....',
+    '..##...............###.',
+    '.#....................#',
+    '#######################',
+  ],
+  star: ['...#...', '...#...', '#######', '.#####.', '..###..', '.##.##.', '.#...#.'],
+  check: ['.......', '......#', '.....##', '#...##.', '##.##..', '.###...', '..#....'],
+  commit: ['...#...', '...#...', '..###..', '..#.#..', '..###..', '...#...', '...#...'],
 };
-const VIVID = [C.gold, C.magenta, C.cyan, C.green, C.purple, C.orange];
-
-// ---------------------------------------------------------------- pixel font
-
-const FONT = {
-  A: '.###./#...#/#...#/#####/#...#/#...#/#...#',
-  B: '####./#...#/#...#/####./#...#/#...#/####.',
-  C: '.####/#..../#..../#..../#..../#..../.####',
-  D: '####./#...#/#...#/#...#/#...#/#...#/####.',
-  E: '#####/#..../#..../####./#..../#..../#####',
-  F: '#####/#..../#..../####./#..../#..../#....',
-  G: '.####/#..../#..../#.###/#...#/#...#/.###.',
-  H: '#...#/#...#/#...#/#####/#...#/#...#/#...#',
-  I: '#####/..#../..#../..#../..#../..#../#####',
-  J: '..###/....#/....#/....#/....#/#...#/.###.',
-  K: '#...#/#..#./#.#../##.../#.#../#..#./#...#',
-  L: '#..../#..../#..../#..../#..../#..../#####',
-  M: '#...#/##.##/#.#.#/#.#.#/#...#/#...#/#...#',
-  N: '#...#/##..#/##..#/#.#.#/#..##/#..##/#...#',
-  O: '.###./#...#/#...#/#...#/#...#/#...#/.###.',
-  P: '####./#...#/#...#/####./#..../#..../#....',
-  Q: '.###./#...#/#...#/#...#/#.#.#/#..#./.##.#',
-  R: '####./#...#/#...#/####./#.#../#..#./#...#',
-  S: '.####/#..../#..../.###./....#/....#/####.',
-  T: '#####/..#../..#../..#../..#../..#../..#..',
-  U: '#...#/#...#/#...#/#...#/#...#/#...#/.###.',
-  V: '#...#/#...#/#...#/#...#/#...#/.#.#./..#..',
-  W: '#...#/#...#/#...#/#.#.#/#.#.#/##.##/#...#',
-  X: '#...#/#...#/.#.#./..#../.#.#./#...#/#...#',
-  Y: '#...#/#...#/.#.#./..#../..#../..#../..#..',
-  Z: '#####/....#/...#./..#../.#.../#..../#####',
-  0: '.###./#...#/#..##/#.#.#/##..#/#...#/.###.',
-  1: '..#../.##../..#../..#../..#../..#../.###.',
-  2: '.###./#...#/....#/...#./..#../.#.../#####',
-  3: '####./....#/....#/.###./....#/....#/####.',
-  4: '...#./..##./.#.#./#..#./#####/...#./...#.',
-  5: '#####/#..../####./....#/....#/#...#/.###.',
-  6: '.###./#..../#..../####./#...#/#...#/.###.',
-  7: '#####/....#/...#./..#../.#.../.#.../.#...',
-  8: '.###./#...#/#...#/.###./#...#/#...#/.###.',
-  9: '.###./#...#/#...#/.####/....#/....#/.###.',
-  ' ': '...../...../...../...../...../...../.....',
-  '.': '...../...../...../...../...../.##../.##..',
-  ',': '...../...../...../...../.##../..#../.#...',
-  '-': '...../...../...../.###./...../...../.....',
-  _: '...../...../...../...../...../...../#####',
-  '/': '....#/....#/...#./..#../.#.../#..../#....',
-  ':': '...../.##../.##../...../.##../.##../.....',
-  '#': '.#.#./.#.#./#####/.#.#./#####/.#.#./.#.#.',
-  '+': '...../..#../..#../#####/..#../..#../.....',
-  '%': '##..#/##..#/...#./..#../.#.../#..##/#..##',
-  '>': '#..../.#.../..#../...#./..#../.#.../#....',
-  '<': '....#/...#./..#../.#.../..#../...#./....#',
-  '!': '..#../..#../..#../..#../..#../...../..#..',
-  '?': '.###./#...#/....#/...#./..#../...../..#..',
-  '(': '...#./..#../.#.../.#.../.#.../..#../...#.',
-  ')': '.#.../..#../...#./...#./...#./..#../.#...',
-  "'": '..#../..#../...../...../...../...../.....',
-};
-
-const ICONS = {
-  star: '...#.../...#.../#######/.#####./..###../.##.##./.#...#.',
-  check: '......./......#/.....##/#...##./##.##../.###.../..#....',
-  commit: '...#.../...#.../..###../..#.#../..###../...#.../...#...',
-};
-
-const ascii = (s) =>
-  String(s)
-    .replace(/ı/g, 'i')
-    .replace(/İ/g, 'I')
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '');
 
 // Bitmap rows -> one path of merged horizontal runs.
 function bitmapPath(rows, x, y, s) {
@@ -122,21 +135,7 @@ function bitmapPath(rows, x, y, s) {
   return d;
 }
 
-const pixWidth = (text, s) => Math.max(0, String(text).length * 6 * s - s);
-
-function pix(text, x, y, s, fill, attrs = '') {
-  let d = '';
-  [...ascii(text).toUpperCase()].forEach((ch, i) => {
-    const glyph = FONT[ch] ?? FONT['?'];
-    d += bitmapPath(glyph.split('/'), x + i * 6 * s, y, s);
-  });
-  return `<path d="${d}" fill="${fill}" ${attrs}/>`;
-}
-
-const pixRight = (text, xRight, y, s, fill, attrs) => pix(text, xRight - pixWidth(text, s), y, s, fill, attrs);
-
-const icon = (name, x, y, s, fill, attrs = '') =>
-  `<path d="${bitmapPath(ICONS[name].split('/'), x, y, s)}" fill="${fill}" ${attrs}/>`;
+const sprite = (name, x, y, s, attrs = '') => `<path d="${bitmapPath(SPRITES[name], x, y, s)}" ${attrs}/>`;
 
 function rng(seed) {
   let a = seed >>> 0;
@@ -148,36 +147,26 @@ function rng(seed) {
   };
 }
 
-const svg = (h, body, css = '') =>
-  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${h}" width="${W}" height="${h}" shape-rendering="crispEdges">
+// Monochrome palettes. Each card is written once per theme and the README picks one
+// with <picture>, so the cards follow GitHub's theme.
+const THEMES = {
+  light: { bg: '#ffffff', fg: '#171717', muted: '#666666', line: '#eaeaea', scene: '#c9c9c9' },
+  dark: { bg: '#0d1117', fg: '#ededed', muted: '#a1a1a1', line: '#30363d', scene: '#4d545e' },
+};
+
+const svg = (t, h, body, css = '') =>
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${h}" width="${W}" height="${h}">
 <style>
+.fg{fill:${t.fg}}.muted{fill:${t.muted}}.line{fill:${t.line}}.scene{fill:${t.scene}}
+.card{fill:${t.bg};stroke:${t.line}}
+.px{shape-rendering:crispEdges}
 @keyframes blink{0%,49%{opacity:1}50%,100%{opacity:0}}
-@keyframes twinkle{0%,100%{opacity:.15}50%{opacity:1}}
-@keyframes pop{0%{opacity:0;transform:translateY(10px)}100%{opacity:1;transform:translateY(0)}}
-@keyframes slide{0%{opacity:0;transform:translateX(-24px)}100%{opacity:1;transform:translateX(0)}}
-@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
-@keyframes march{to{stroke-dashoffset:-32}}
-@keyframes sweep{0%{transform:translateX(-200px)}35%,100%{transform:translateX(${W + 200}px)}}
-@keyframes cell{0%{opacity:0}100%{opacity:1}}
-.blink{animation:blink 1s steps(1) infinite}
+@keyframes rise{0%{opacity:0;transform:translateY(6px)}100%{opacity:1;transform:translateY(0)}}
 ${css}
 </style>
 ${body}
 </svg>
 `;
-
-// Sharp panel with accent corner notches.
-function panel(x, y, w, h, accent) {
-  const n = 6;
-  return `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${C.panel}" stroke="${C.border}" stroke-width="2"/>
-<path d="M${x - 1} ${y - 1}h${n * 2}v2h${-n * 2 + 2}v${n * 2 - 2}h-2zM${x + w + 1} ${y + h + 1}h${-n * 2}v-2h${n * 2 - 2}v${-n * 2 + 2}h2z" fill="${accent}"/>`;
-}
-
-const sectionTitle = (title, accent) =>
-  `${pix('>', 16, 14, 2, accent)}${pix(title, 34, 14, 2, C.text)}
-<rect class="blink" x="${40 + pixWidth(title, 2)}" y="14" width="10" height="14" fill="${accent}"/>
-<rect x="${62 + pixWidth(title, 2)}" y="20" width="${W - 78 - pixWidth(title, 2)}" height="2" fill="${C.border}"/>`;
 
 const fmt = (n) => n.toLocaleString('en-US');
 
@@ -200,14 +189,12 @@ async function fetchData() {
       id createdAt
       repositories(first:100,ownerAffiliations:OWNER,privacy:PUBLIC,orderBy:{field:STARGAZERS,direction:DESC}){nodes{
         stargazerCount isFork
-        languages(first:20,orderBy:{field:SIZE,direction:DESC}){edges{size node{name color}}}
         issues(states:CLOSED){totalCount}
       }}
     }}`,
     { login: LOGIN },
   );
 
-  const now = new Date();
   const firstYear = new Date(user.createdAt).getUTCFullYear();
 
   // Real commits authored on default branches. The contribution graph is not used here:
@@ -227,161 +214,127 @@ async function fetchData() {
 
   // Forks only count once someone starred them, i.e. they grew into their own project.
   const repos = user.repositories.nodes.filter((r) => !r.isFork || r.stargazerCount > 0);
-  const langBytes = new Map();
-  for (const repo of repos) {
-    for (const { size, node } of repo.languages.edges) {
-      const entry = langBytes.get(node.name) ?? { name: node.name, color: node.color ?? C.muted, size: 0 };
-      entry.size += size;
-      langBytes.set(node.name, entry);
-    }
-  }
-  const totalBytes = [...langBytes.values()].reduce((s, l) => s + l.size, 0) || 1;
-  const languages = [...langBytes.values()]
-    .sort((a, b) => b.size - a.size)
-    .map((l) => ({ ...l, pct: (l.size / totalBytes) * 100 }));
-
   return {
     joinedYear: firstYear,
-    level: Math.floor((now - new Date(user.createdAt)) / (365.25 * 86400000)),
     stars: repos.reduce((s, r) => s + r.stargazerCount, 0),
     solvedIssues: repos.reduce((s, r) => s + r.issues.totalCount, 0),
     commits,
     privateRepos,
-    languages,
   };
 }
 
 // ---------------------------------------------------------------- cards
 
-function heroCard(d) {
-  const H = 260;
+// Endless runner strip behind the hero text. The ground scrolls one full card width per
+// loop, and the dino's jumps are timed to the two obstacles in that loop.
+function dinoScene(H) {
+  const LOOP = 4; // seconds per card width
+  const GROUND = H - 30;
+  const DINO_X = 64;
+  const JUMPS = [0.3, 0.75]; // loop fractions at which an obstacle reaches the dino
+  const dinoMid = DINO_X + 22;
+  const obstacleAt = (phase, width) => Math.round(dinoMid + phase * W - width / 2);
+
   const rand = rng(1337);
-  let stars = '';
-  for (let i = 0; i < 70; i++) {
-    const size = rand() < 0.25 ? 4 : 2;
-    const x = Math.floor(rand() * (W / 2)) * 2;
-    const y = Math.floor(rand() * 90) * 2;
-    const fill = rand() < 0.5 ? C.text : VIVID[Math.floor(rand() * VIVID.length)];
-    stars += `<rect x="${x}" y="${y}" width="${size}" height="${size}" fill="${fill}" style="animation:twinkle ${(
-      1.6 +
-      rand() * 3
-    ).toFixed(1)}s ${(rand() * 3).toFixed(1)}s infinite"/>`;
+  let ground = '';
+  for (let x = 0; x < W; ) {
+    const len = Math.min(20 + Math.floor(rand() * 60) * 2, W - x);
+    ground += `M${x} ${GROUND}h${len}v2h${-len}z`;
+    x += len + (rand() < 0.3 ? 6 : 0);
   }
+  for (let i = 0; i < 40; i++) {
+    const x = Math.floor(rand() * (W / 2 - 4)) * 2;
+    const y = GROUND + 6 + Math.floor(rand() * 5) * 2;
+    const len = rand() < 0.5 ? 2 : 6;
+    ground += `M${x} ${y}h${len}v2h${-len}z`;
+  }
+  const big = obstacleAt(JUMPS[0], 22);
+  const pair = obstacleAt(JUMPS[1], 32);
+  const strip = `<path d="${ground}"/>
+${sprite('cactus', big, GROUND - 30, 2)}
+${sprite('cactusSmall', pair, GROUND - 20, 2)}${sprite('cactusSmall', pair + 18, GROUND - 20, 2)}`;
+  const clouds = `${sprite('cloud', 150, 22, 2)}${sprite('cloud', 520, 172, 2)}${sprite('cloud', 770, 30, 2)}`;
 
-  // Pixel skyline echoing the castle behind the knight.
-  const skyline = (seed, fill, base, spireChance) => {
-    const r = rng(seed);
-    let dPath = '';
-    for (let x = 0; x < W; x += 8) {
-      let h = base + Math.floor(r() * 4) * 6;
-      if (r() < spireChance) h += 30 + Math.floor(r() * 4) * 8;
-      dPath += `M${x} ${H - h}h8v${h}h-8z`;
-    }
-    return `<path d="${dPath}" fill="${fill}"/>`;
+  const pct = (f) => `${num(f * 100)}%`;
+  const air = 0.3 / LOOP; // half a jump, as a loop fraction
+  const jump = JUMPS.map(
+    (p) =>
+      `${pct(p - air)}{transform:translateY(0);animation-timing-function:cubic-bezier(.33,.67,.67,1)}` +
+      `${pct(p)}{transform:translateY(-50px);animation-timing-function:cubic-bezier(.33,0,.67,.33)}` +
+      `${pct(p + air)}{transform:translateY(0)}`,
+  ).join('');
+
+  return {
+    css: `@keyframes scroll{to{transform:translateX(-${W}px)}}
+@keyframes jump{0%,100%{transform:translateY(0)}${jump}}
+.ground{animation:scroll ${LOOP}s linear infinite}
+.clouds{animation:scroll ${LOOP * 12}s linear infinite}
+.dino{animation:jump ${LOOP}s linear infinite}
+.legs{animation:blink .2s steps(1) infinite}`,
+    body: `<g class="px scene" clip-path="url(#card)">
+<g class="clouds line"><g id="clouds">${clouds}</g><use href="#clouds" x="${W}"/></g>
+<g class="ground"><g id="strip">${strip}</g><use href="#strip" x="${W}"/></g>
+<g class="dino">
+${sprite('dino', DINO_X, GROUND - 42, 2)}
+${sprite('legsA', DINO_X, GROUND - 4, 2, 'class="legs"')}
+${sprite('legsB', DINO_X, GROUND - 4, 2, 'class="legs" style="animation-delay:-.1s"')}
+</g>
+</g>`,
   };
+}
 
-  const nameX = 48;
-  const nameS = 7;
-  const nameW = pixWidth(DISPLAY_NAME, nameS);
-  const tagW = pixWidth(TAGLINE, 2);
-  const steps = TAGLINE.length;
-  const typed = Array.from({ length: steps + 1 }, (_, i) => i * 12).join(';');
-  const cursor = Array.from({ length: steps + 1 }, (_, i) => nameX + i * 12).join(';');
+function heroCard(d, theme) {
+  const H = 280;
+  const x = 48;
+  const scene = dinoScene(H);
 
-  const milestone = Math.max(500, Math.ceil((d.stars + 1) / 500) * 500);
-  const xpCells = 30;
-  const xpFilled = Math.round(((d.stars - (milestone - 500)) / 500) * xpCells);
-  let xp = '';
-  for (let i = 0; i < xpCells; i++) {
-    const on = i < xpFilled;
-    xp += `<rect x="${nameX + 40 + i * 12}" y="196" width="10" height="14" fill="${on ? C.gold : C.dim}"${
-      on ? ` style="animation:cell .2s ${(1.2 + i * 0.05).toFixed(2)}s both"` : ''
-    }/>`;
-  }
-  const lvl = `LVL ${String(d.level).padStart(2, '0')}`;
+  const tagSize = 15;
+  const step = textWidth('0', tagSize, 'mono');
+  const steps = [...TAGLINE].length;
+  const typed = Array.from({ length: steps + 1 }, (_, i) => num(i * step)).join(';');
+  const meta = `On GitHub since ${d.joinedYear}`;
 
   return svg(
+    theme,
     H,
     `<defs>
-<linearGradient id="name" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="${nameW}" y2="0" spreadMethod="repeat">
-<stop offset="0" stop-color="${C.gold}"/><stop offset=".25" stop-color="${C.magenta}"/><stop offset=".5" stop-color="${C.purple}"/><stop offset=".75" stop-color="${C.cyan}"/><stop offset="1" stop-color="${C.gold}"/>
-<animateTransform attributeName="gradientTransform" type="translate" from="0 0" to="${nameW} 0" dur="6s" repeatCount="indefinite"/>
-</linearGradient>
-<clipPath id="type"><rect x="${nameX}" y="110" width="0" height="20"><animate attributeName="width" calcMode="discrete" values="${typed}" dur="2.4s" begin=".6s" fill="freeze"/></rect></clipPath>
+<clipPath id="card"><rect x="1" y="1" width="${W - 2}" height="${H - 2}" rx="12"/></clipPath>
+<clipPath id="type"><rect x="${x}" y="104" width="0" height="26"><animate attributeName="width" calcMode="discrete" values="${typed}" dur="2s" begin=".5s" fill="freeze"/></rect></clipPath>
 </defs>
-<rect width="${W}" height="${H}" fill="${C.bg}"/>
-${stars}
-${skyline(7, '#15111f', 14, 0.12)}
-${skyline(21, '#1d172b', 6, 0.05)}
-${pix(DISPLAY_NAME, nameX + nameS, 40 + nameS, nameS, '#3b1030')}
-${pix(DISPLAY_NAME, nameX, 40, nameS, 'url(#name)')}
-<g clip-path="url(#type)">${pix(TAGLINE, nameX, 112, 2, C.cyan)}</g>
-<rect class="blink" x="${nameX}" y="112" width="10" height="14" fill="${C.cyan}"><animate attributeName="x" calcMode="discrete" values="${cursor}" dur="2.4s" begin=".6s" fill="freeze"/></rect>
-<g style="animation:pop .5s 1s both">
-<rect x="${nameX}" y="150" width="${pixWidth(lvl, 2) + 20}" height="26" fill="${C.gold}"/>
-${pix(lvl, nameX + 10, 156, 2, C.bg)}
-${pix(`CLASS: ${CLASS_NAME}`, nameX + pixWidth(lvl, 2) + 36, 156, 2, C.text)}
-</g>
-${pix('XP', nameX, 196, 2, C.gold)}
-${xp}
-${pix(`${fmt(d.stars)}/${fmt(milestone)} STARS`, nameX + 40 + xpCells * 12 + 10, 196, 2, C.muted)}
-${pix(`ON GITHUB SINCE ${d.joinedYear}`, nameX, 226, 1, C.muted)}
-<rect width="${W}" height="${H}" fill="none" stroke="${C.border}" stroke-width="4"/>`,
+<rect class="card" x=".5" y=".5" width="${W - 1}" height="${H - 1}" rx="12"/>
+${scene.body}
+${text(DISPLAY_NAME, x, 88, 52, 'sans', 'fg', -0.035)}
+<g clip-path="url(#type)">${text(TAGLINE, x, 122, tagSize, 'mono', 'muted')}</g>
+${text(meta, x, 148, 12, 'mono', 'muted')}`,
+    scene.css,
   );
 }
 
-function statsCard(d) {
+function statsCard(d, theme) {
   const tiles = [
-    ['star', 'TOTAL STARS', d.stars, C.gold],
-    ['check', 'ISSUES SOLVED', d.solvedIssues, C.green],
-    ['commit', 'COMMITS', d.commits, C.cyan],
+    ['star', 'TOTAL STARS', d.stars],
+    ['check', 'ISSUES SOLVED', d.solvedIssues],
+    ['commit', 'COMMITS', d.commits],
   ];
-  const tw = 272;
-  const th = 84;
+  const H = 156;
+  const pad = 48;
+  const col = (W - 2 * pad) / tiles.length;
   const body = tiles
-    .map(([ic, label, value, color], i) => {
-      const x = 16 + i * (tw + 16);
-      const y = 44;
-      return `<g style="animation:pop .45s ${(i * 0.1).toFixed(1)}s both">
-${panel(x, y, tw, th, color)}
-<rect x="${x + 1}" y="${y + 1}" width="6" height="${th - 2}" fill="${color}" style="animation:pulse 2.4s ${(i * 0.3).toFixed(1)}s infinite"/>
-<g style="animation:bob 2s ${(i * 0.25).toFixed(2)}s steps(2) infinite">${icon(ic, x + 26, y + 22, 6, color)}</g>
-${pix(fmt(value), x + 88, y + 18, 4, C.text)}
-${pix(label, x + 88, y + 56, 2, color)}
+    .map(([ic, label, value], i) => {
+      const x = pad + i * col;
+      return `<g style="animation:rise .5s ${(i * 0.08).toFixed(2)}s both">
+${sprite(ic, Math.round(x), 73, 2, 'class="px muted"')}
+${text(label, x + 24, 84, 11, 'mono', 'muted', 0.08)}
+${text(fmt(value), x, 124, 34, 'sans', 'fg', -0.03)}
 </g>`;
     })
     .join('\n');
-  return svg(44 + th + 16, `<rect width="${W}" height="100%" fill="${C.bg}"/>${sectionTitle('PLAYER STATS', C.gold)}${body}`);
-}
-
-function languagesCard(d) {
-  const top = d.languages.slice(0, 2);
-  const rest = d.languages.slice(2);
-  if (rest.length) {
-    top.push({ name: 'Other', color: C.muted, pct: rest.reduce((s, l) => s + l.pct, 0) });
-  }
-  const cells = 36;
-  const rowH = 30;
-  const rows = top
-    .map((lang, r) => {
-      const y = 50 + r * rowH;
-      const filled = Math.max(1, Math.round((lang.pct / 100) * cells));
-      let bar = '';
-      for (let i = 0; i < cells; i++) {
-        const on = i < filled;
-        bar += `<rect x="${250 + i * 14}" y="${y}" width="12" height="14" fill="${on ? lang.color : C.panelHi}"${
-          on ? ` style="animation:cell .15s ${(0.2 + r * 0.12 + i * 0.03).toFixed(2)}s both"` : ''
-        }/>`;
-      }
-      return `<rect x="16" y="${y}" width="14" height="14" fill="${lang.color}" style="animation:pulse 2s ${(r * 0.2).toFixed(1)}s infinite"/>
-${pix(lang.name, 40, y, 2, C.text)}
-${bar}
-${pixRight(`${lang.pct.toFixed(1)}%`, W - 16, y, 2, lang.color)}`;
-    })
-    .join('\n');
   return svg(
-    50 + top.length * rowH + 8,
-    `<rect width="${W}" height="100%" fill="${C.bg}"/>${sectionTitle('LANGUAGES', C.cyan)}${rows}`,
+    theme,
+    H,
+    `<rect class="card" x=".5" y=".5" width="${W - 1}" height="${H - 1}" rx="12"/>
+${text('Stats', pad, 44, 18, 'sans', 'fg', -0.02)}
+${body}`,
   );
 }
 
@@ -391,11 +344,11 @@ async function main() {
   if (!TOKEN) throw new Error('Set GITHUB_TOKEN (or GH_TOKEN) to query the GitHub API.');
   const data = await fetchData();
   await mkdir(ASSETS, { recursive: true });
-  const files = {
-    'hero.svg': heroCard(data),
-    'stats.svg': statsCard(data),
-    'languages.svg': languagesCard(data),
-  };
+  const files = {};
+  for (const [name, theme] of Object.entries(THEMES)) {
+    files[`hero-${name}.svg`] = heroCard(data, theme);
+    files[`stats-${name}.svg`] = statsCard(data, theme);
+  }
   await Promise.all(Object.entries(files).map(([name, content]) => writeFile(join(ASSETS, name), content)));
   console.log(
     `Generated ${Object.keys(files).length} cards: ${data.stars} stars, ${data.solvedIssues} issues solved, ${data.commits} commits (${data.privateRepos} private repos visible).`,
