@@ -47,61 +47,38 @@ function text(str, x, y, size, font, cls, track = 0) {
 // ---------------------------------------------------------------- pixel art
 
 const SPRITES = {
-  dino: [
-    '.........................################...',
-    '.........................################...',
-    '.......................####################.',
-    '.......................#####WW#############.',
-    '.......................#####WW#############.',
-    '.......................####################.',
-    '.......................####################.',
-    '.......................####################.',
-    '.......................####################.',
-    '.......................####################.',
-    '.......................##########...........',
-    '.......................##########...........',
-    '.......................################.....',
-    '.......................################.....',
-    '.......................#########............',
-    '.....................BLW########............',
-    '##.................BBLBW#######.............',
-    '##.................DBLBBW######.............',
-    '##................BBDLBBBWWWWWW.............',
-    '##..............DBBBBLBBBWWRRWWB............',
-    '#####.........BBBBBBBDLBBBWRRWBB............',
-    '#####.........BBBBBBBBLBBBBRRBBB............',
-    '.######......DBBBBBBBBDLBBBRRBBB............',
-    '.#######....DBBBBBBBBBBLBBBRRBLBD...........',
-    '.###########BBBBBBBLBBBDLBBRRBBDD...........',
-    '..##########BBBBBBLLBBDBDLBRRBBDBB..........',
-    '..###########BBBBBBLBBDBBBLBLBDDBB..........',
-    '..###########BBBBBBLBBBBBBDLBBD..#..........',
-    '....##########DBBBBLBBB..BBB.....#..........',
-    '....###########BBBBBLLL..##B................',
-    '......###########LBBBBLB.##B................',
-    '......###########LLBBDDD###B................',
-    '.......###########LLLBBDD##B................',
-    '........##########BLLLBBBBB.................',
-    '...........#######BBBDLLBB..................',
-    '...........#######BBBBDBB...................',
-    '...........#######...BBBB...................',
-    '...........#######...BBBB...................',
+  android: [
+    '...A........A...',
+    '....A......A....',
+    '.....AAAAAA.....',
+    '...AAAAAAAAAA...',
+    '..AAAAAAAAAAAA..',
+    '..AAWWAAAAWWAA..',
+    '..AAWWAAAAWWAA..',
+    '..AAAAAAAAAAAA..',
+    '..aaaaaaaaaaaa..',
+    '..BBBWWRRWWBBB..',
+    '.BBBBLWRRWLBBBB.',
+    '.BBBBBLRRLBBBBB.',
+    '.BBBBBBRRBBBBBB.',
+    '.BBBBBBDDBBBBBB.',
+    '.BBDBBBBBBBBDBB.',
+    '.BBDBBBBBBBBDBB.',
+    '.WWDBBBBBBBBDWW.',
+    '.AADDDDDDDDDDAA.',
+    '.AA.BBBBBBBB.AA.',
   ],
   legsA: [
-    '............####.....BBBB...................',
-    '............####......####..................',
-    '............####......#######...............',
-    '............####......#######...............',
-    '............######..........................',
-    '............######..........................',
+    '....BBB..BBB....',
+    '....BBB..BBB....',
+    '....DDD..BBB....',
+    '.........DDDD...',
   ],
   legsB: [
-    '............####.....BBBB...................',
-    '............####......####..................',
-    '............######....####..................',
-    '............######....####..................',
-    '......................#######...............',
-    '......................#######...............',
+    '....BBB..BBB....',
+    '....BBB..BBB....',
+    '....BBB..DDD....',
+    '...DDDD.........',
   ],
   cactus: [
     '....###....',
@@ -172,6 +149,8 @@ function bitmapPath(rows, x, y, s, ch = '#') {
 
 // '#' takes the fill of its surroundings, the other letters are fixed colors.
 const SPRITE_FILLS = {
+  A: '#97c93d',
+  a: '#6f9a2b',
   B: '#7a4a2b',
   L: '#99643c',
   D: '#5a3620',
@@ -293,20 +272,20 @@ async function fetchData() {
 // ---------------------------------------------------------------- cards
 
 // Endless runner strip behind the hero text. The ground scrolls one full card width per
-// loop, and the dino's jumps are timed to the two obstacles in that loop. Everything moves
+// loop, and the android's jumps are timed to the two obstacles in that loop. Everything moves
 // in whole steps on a shared FPS tick: README images repaint the whole SVG on every
 // change, so smooth 60fps motion makes the page lag.
-function dinoScene(H) {
+function runnerScene(H) {
   const FPS = 30;
   const STEP = 8; // ground pixels per frame
   const FRAMES = W / STEP; // frames per loop
   const LOOP = FRAMES / FPS; // seconds per card width
   const GROUND = H - 30;
   const GRASS = 12; // thickness of the grass band
-  const DINO_X = 64;
-  const JUMPS = [0.3, 0.75]; // loop fractions at which an obstacle reaches the dino
-  const dinoMid = DINO_X + 22;
-  const obstacleAt = (phase, width) => Math.round(dinoMid + phase * W - width / 2);
+  const RUNNER_X = 64;
+  const JUMPS = [0.3, 0.75]; // loop fractions at which an obstacle reaches the runner
+  const runnerMid = RUNNER_X + 16;
+  const obstacleAt = (phase, width) => Math.round(runnerMid + phase * W - width / 2);
 
   // A band of grass on top of dirt that runs to the bottom of the card.
   const rand = rng(1337);
@@ -362,17 +341,17 @@ ${sprite('cactusSmall', pair, GROUND - 20, 2, cactus)}${sprite('cactusSmall', pa
 @keyframes jump{0%,100%{transform:translateY(0)}${jump}}
 .ground{animation:scroll ${num(LOOP)}s steps(${FRAMES}) infinite}
 .clouds{animation:scroll ${num(LOOP * 12)}s steps(${W / 4}) infinite}
-.dino{animation:jump ${num(LOOP)}s step-end infinite}
+.runner{animation:jump ${num(LOOP)}s step-end infinite}
 .legs{animation:blink .2s steps(1) infinite}`,
     // No clip-path here: clipping an animated layer is redrawn every frame. The root
     // viewport clips the sides and heroCard covers the rounded corners instead.
     body: `<g class="px scene">
 <g class="clouds line"><g id="clouds">${clouds}</g><use href="#clouds" x="${W}"/></g>
 <g class="ground"><g id="strip">${strip}</g><use href="#strip" x="${W}"/></g>
-<g class="dino">
-${sprite('dino', DINO_X, GROUND - 40, 1)}
-${sprite('legsA', DINO_X, GROUND - 2, 1, 'class="legs"')}
-${sprite('legsB', DINO_X, GROUND - 2, 1, 'class="legs" style="animation-delay:-.1s"')}
+<g class="runner">
+${sprite('android', RUNNER_X, GROUND - 44, 2)}
+${sprite('legsA', RUNNER_X, GROUND - 6, 2, 'class="legs"')}
+${sprite('legsB', RUNNER_X, GROUND - 6, 2, 'class="legs" style="animation-delay:-.1s"')}
 </g>
 </g>`,
   };
@@ -381,7 +360,7 @@ ${sprite('legsB', DINO_X, GROUND - 2, 1, 'class="legs" style="animation-delay:-.
 function heroCard(d, theme) {
   const H = 404;
   const x = 48;
-  const scene = dinoScene(H);
+  const scene = runnerScene(H);
 
   const tagSize = 15;
   const tagX = num(x + textWidth(DISPLAY_NAME, 52, 'sans', -0.035) + 20);
