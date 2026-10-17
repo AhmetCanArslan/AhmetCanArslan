@@ -225,7 +225,7 @@ const svg = (t, h, body, css = '') =>
   `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${h}" width="${W}" height="${h}">
 <style>
 .fg{fill:${t.fg}}.muted{fill:${t.muted}}.line{fill:${t.line}}.scene{fill:${t.scene}}
-.card{fill:${t.bg};stroke:${t.line}}
+.card{fill:${t.bg};stroke:${t.line}}.bg{fill:${t.bg}}.edge{fill:none;stroke:${t.line}}
 .px{shape-rendering:crispEdges}
 @keyframes blink{0%,49%{opacity:1}50%,100%{opacity:0}}
 @keyframes rise{0%{opacity:0;transform:translateY(6px)}100%{opacity:1;transform:translateY(0)}}
@@ -293,9 +293,14 @@ async function fetchData() {
 // ---------------------------------------------------------------- cards
 
 // Endless runner strip behind the hero text. The ground scrolls one full card width per
-// loop, and the dino's jumps are timed to the two obstacles in that loop.
+// loop, and the dino's jumps are timed to the two obstacles in that loop. Everything moves
+// in whole steps on a shared FPS tick: README images repaint the whole SVG on every
+// change, so smooth 60fps motion makes the page lag.
 function dinoScene(H) {
-  const LOOP = 4; // seconds per card width
+  const FPS = 30;
+  const STEP = 8; // ground pixels per frame
+  const FRAMES = W / STEP; // frames per loop
+  const LOOP = FRAMES / FPS; // seconds per card width
   const GROUND = H - 30;
   const GRASS = 12; // thickness of the grass band
   const DINO_X = 64;
@@ -342,23 +347,26 @@ ${sprite('cactus', big, GROUND - 30, 2, cactus)}
 ${sprite('cactusSmall', pair, GROUND - 20, 2, cactus)}${sprite('cactusSmall', pair + 18, GROUND - 20, 2, cactus)}`;
   const clouds = `${sprite('cloud', 150, 22, 2)}${sprite('cloud', 520, GROUND - 84, 2)}${sprite('cloud', 770, 30, 2)}`;
 
-  const pct = (f) => `${num(f * 100)}%`;
-  const air = 0.3 / LOOP; // half a jump, as a loop fraction
-  const jump = JUMPS.map(
-    (p) =>
-      `${pct(p - air)}{transform:translateY(0);animation-timing-function:cubic-bezier(.33,.67,.67,1)}` +
-      `${pct(p)}{transform:translateY(-50px);animation-timing-function:cubic-bezier(.33,0,.67,.33)}` +
-      `${pct(p + air)}{transform:translateY(0)}`,
-  ).join('');
+  // Jumps are parabolas sampled once per frame and held with step-end.
+  const pct = (f) => `${num((f / FRAMES) * 100)}%`;
+  const AIR = Math.round(0.3 * FPS); // frames of half a jump
+  const jump = JUMPS.map((p) => {
+    const mid = Math.round(p * FRAMES);
+    let out = '';
+    for (let k = -AIR; k <= AIR; k++) out += `${pct(mid + k)}{transform:translateY(${-Math.round(50 * (1 - (k / AIR) ** 2))}px)}`;
+    return out;
+  }).join('');
 
   return {
     css: `@keyframes scroll{to{transform:translateX(-${W}px)}}
 @keyframes jump{0%,100%{transform:translateY(0)}${jump}}
-.ground{animation:scroll ${LOOP}s linear infinite}
-.clouds{animation:scroll ${LOOP * 12}s linear infinite}
-.dino{animation:jump ${LOOP}s linear infinite}
+.ground{animation:scroll ${num(LOOP)}s steps(${FRAMES}) infinite}
+.clouds{animation:scroll ${num(LOOP * 12)}s steps(${W / 4}) infinite}
+.dino{animation:jump ${num(LOOP)}s step-end infinite}
 .legs{animation:blink .2s steps(1) infinite}`,
-    body: `<g class="px scene" clip-path="url(#card)">
+    // No clip-path here: clipping an animated layer is redrawn every frame. The root
+    // viewport clips the sides and heroCard covers the rounded corners instead.
+    body: `<g class="px scene">
 <g class="clouds line"><g id="clouds">${clouds}</g><use href="#clouds" x="${W}"/></g>
 <g class="ground"><g id="strip">${strip}</g><use href="#strip" x="${W}"/></g>
 <g class="dino">
@@ -386,11 +394,12 @@ function heroCard(d, theme) {
     theme,
     H,
     `<defs>
-<clipPath id="card"><rect x="1" y="1" width="${W - 2}" height="${H - 2}" rx="12"/></clipPath>
 <clipPath id="type"><rect x="${tagX}" y="70" width="0" height="26"><animate attributeName="width" calcMode="discrete" values="${typed}" dur="2s" begin=".5s" fill="freeze"/></rect></clipPath>
 </defs>
 <rect class="card" x=".5" y=".5" width="${W - 1}" height="${H - 1}" rx="12"/>
 ${scene.body}
+<path class="bg" d="M0 ${H - 12.5}H.5A12 12 0 0 0 12.5 ${H - 0.5}V${H}H0zM${W - 12.5} ${H}V${H - 0.5}A12 12 0 0 0 ${W - 0.5} ${H - 12.5}H${W}V${H}z"/>
+<rect class="edge" x=".5" y=".5" width="${W - 1}" height="${H - 1}" rx="12"/>
 ${text(DISPLAY_NAME, x, 88, 52, 'sans', 'fg', -0.035)}
 <g clip-path="url(#type)">${text(TAGLINE, tagX, 88, tagSize, 'mono', 'muted')}</g>
 ${text(meta, x, 122, 12, 'mono', 'muted')}
