@@ -357,6 +357,26 @@ ${sprite('legsB', RUNNER_X, GROUND - 6, 2, 'class="legs" style="animation-delay:
   };
 }
 
+// Google Play mark in its four brand colors, `h` tall with its top-right corner at (right, top).
+// The triangle spans x 0..18, y 0..21 in its own units.
+function playIcon(right, top, h) {
+  const s = h / 21;
+  const C = '10.5 10.5';
+  const T = '0 0';
+  const B = '0 21';
+  const P1 = '13.5 7.88';
+  const P2 = '13.5 13.13';
+  const parts = [
+    ['#4285f4', [T, C, B]],
+    ['#34a853', [T, P1, C]],
+    ['#ea4335', [B, C, P2]],
+    ['#fbbc04', [C, P1, '18 10.5', P2]],
+  ];
+  return `<g transform="translate(${num(right - 18 * s)} ${num(top)}) scale(${num(s)})">${parts
+    .map(([fill, pts]) => `<polygon fill="${fill}" points="${pts.join(' ')}"/>`)
+    .join('')}</g>`;
+}
+
 function heroCard(d, theme) {
   const H = 404;
   const x = 48;
@@ -382,6 +402,7 @@ ${scene.body}
 ${text(DISPLAY_NAME, x, 88, 52, 'sans', 'fg', -0.035)}
 <g clip-path="url(#type)">${text(TAGLINE, tagX, 88, tagSize, 'mono', 'muted')}</g>
 ${text(meta, x, 122, 12, 'mono', 'muted')}
+${playIcon(W - x, 51, 37)}
 <rect class="line" x="${x}" y="152" width="${W - 2 * x}" height="1"/>
 ${statsRow(d, x, 186)}`,
     scene.css,
